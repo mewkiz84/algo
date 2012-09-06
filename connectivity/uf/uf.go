@@ -1,74 +1,28 @@
 package uf
 
-type Component struct {
-   Number int
-   Group int
-   Next int
-   Size int
-}
-
-type Uf []Component
+type Uf []int
 
 func New(n int) Uf {
-   u := make([]Component, n)
+   u := make(Uf, n)
    for key := range u {
-      u[key].Number = key
-      u[key].Group = key
-      u[key].Next = key
-      u[key].Size = 1
+      u[key] = key
    }
    return u
 }
 
-// add connection between p and q
-func (union Uf) Union(p, q int) {
-   qg := union[q].Group
-   pg := union[p].Group
-   if pg == qg {
-      return
-   } else if union[pg].Size < union[qg].Size {
-      // add pg to qg and update all number groups in pg to be the group of qg
-      union[qg].Size += union[pg].Size
-      union[pg].Size = 0
-      union.setGroup(pg, qg)
-   } else {
-      // add qg to pg and update all number groups in qg to be the group of pg
-      union[pg].Size += union[qg].Size
-      union[qg].Size = 0
-      union.setGroup(qg, pg)
+func (set Uf) Union(p, q int) {
+   i := set.Root(p)
+   j := set.Root(q)
+   set[i] = j
+}
+
+func (set Uf) Connected(p, q int) bool {
+   return set.Root(p) == set.Root(q)
+}
+
+func (set Uf) Root(p int) int {
+   for p != set[p] {
+      p = set[p]
    }
-   // connect the linked list of p and q
-   union[p].Next, union[q].Next = union[q].Next, union[p].Next
-}
-
-// return the group root
-func (union Uf) Root(p int) int {
-   return union[p].Group
-}
-
-// set p group to q group
-func (union Uf) setGroup(p, q int) {
-   for tmp := union[p].Next; union[p].Group != p; tmp = union[tmp].Next {
-      union[tmp].Group = q
-   }
-}
-
-// are p and q connected?
-func (union Uf) Connected(p, q int) bool {
-   return union[p].Group == union[q].Group
-}
-
-// find what component p is in
-func (union Uf) Find(p int) int {
-   return union[p].Group
-}
-
-// return the number of components
-func (union Uf) Count() (c int) {
-   for _, obj := range union {
-      if obj.Size > 0 {
-         c++
-      }
-   }
-   return c
+   return p
 }
